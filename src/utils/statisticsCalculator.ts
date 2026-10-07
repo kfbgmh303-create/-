@@ -113,17 +113,16 @@ export function generateRandomPracticeQuestion(difficulty: '기초' | '기본' |
       data.push(getRandomInt(10, 50));
     }
     const stats = computeStatistics(data);
-    const options = Array.from(new Set([
-      stats.median,
-      stats.mean,
-      stats.median + (stats.median % 1 === 0 ? 1 : 0.5),
-      Math.max(1, stats.median - (stats.median % 1 === 0 ? 1 : 0.5)),
-    ])).slice(0, 4).sort((a, b) => a - b);
+    const medianStr = `${stats.median}`;
+    const optionsSet = new Set<string>();
+    optionsSet.add(medianStr);
+    optionsSet.add(`${stats.mean}`);
+    optionsSet.add(`${stats.median + (stats.median % 1 === 0 ? 1 : 0.5)}`);
+    optionsSet.add(`${Math.max(1, stats.median - (stats.median % 1 === 0 ? 1 : 0.5))}`);
+    optionsSet.add(`${stats.median + 2}`);
+    optionsSet.add(`${Math.max(1, stats.median - 2)}`);
 
-    // If options length < 4, pad with plausible answers
-    while (options.length < 4) {
-      options.push(Math.round((options[0] + options.length * 2) * 10) / 10);
-    }
+    const options = Array.from(optionsSet).slice(0, 4).sort((a, b) => Number(a) - Number(b));
 
     const steps = [
       {
@@ -152,8 +151,8 @@ export function generateRandomPracticeQuestion(difficulty: '기초' | '기본' |
       prompt: `다음 주어진 자료의 중앙값을 구하시오.\n자료: [ ${data.join(', ')} ]`,
       dataSet: data,
       questionType: 'multiple-choice',
-      options: options.map(o => `${o}`),
-      correctAnswer: `${stats.median}`,
+      options,
+      correctAnswer: medianStr,
       difficulty,
       conceptTag: '중앙값',
       explanation: {
@@ -172,7 +171,6 @@ export function generateRandomPracticeQuestion(difficulty: '기초' | '기본' |
     if (type === 'one') {
       const modeVal = getRandomInt(10, 30);
       data = [modeVal, modeVal, getRandomInt(31, 40), getRandomInt(41, 50), getRandomInt(51, 60)];
-      // shuffle
       data.sort(() => Math.random() - 0.5);
     } else if (type === 'two') {
       const mode1 = getRandomInt(10, 25);
@@ -186,16 +184,14 @@ export function generateRandomPracticeQuestion(difficulty: '기초' | '기본' |
     const stats = computeStatistics(data);
     const correctText = stats.modes.length === 0 ? '없다' : stats.modes.join(', ');
 
-    const options = [
-      correctText,
-      stats.modes.length === 0 ? `${data[0]}` : '없다',
-      `${data[1]}`,
-      `${stats.mean}`,
-    ];
-    const uniqueOptions = Array.from(new Set(options)).slice(0, 4);
-    while (uniqueOptions.length < 4) {
-      uniqueOptions.push(`${getRandomInt(10, 50)}`);
-    }
+    const optionsSet = new Set<string>();
+    optionsSet.add(correctText);
+    if (correctText !== '없다') optionsSet.add('없다');
+    optionsSet.add(`${data[0]}`);
+    optionsSet.add(`${data[1]}`);
+    optionsSet.add(`${data[2]}`);
+    optionsSet.add(`${stats.mean}`);
+    const uniqueOptions = Array.from(optionsSet).slice(0, 4);
 
     return {
       id: `dynamic-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -205,7 +201,7 @@ export function generateRandomPracticeQuestion(difficulty: '기초' | '기본' |
       prompt: `다음 주어진 자료의 최빈값을 구하시오. (없으면 '없다' 선택)\n자료: [ ${data.join(', ')} ]`,
       dataSet: data,
       questionType: 'multiple-choice',
-      options: uniqueOptions.sort(),
+      options: uniqueOptions,
       correctAnswer: correctText,
       difficulty,
       conceptTag: '최빈값',
@@ -229,23 +225,27 @@ export function generateRandomPracticeQuestion(difficulty: '기초' | '기본' |
       },
     };
   } else if (seed < 0.75) {
-    // 미지수 x가 포함된 평균 문제
-    const targetMean = getRandomInt(70, 90);
-    const n = 4;
-    const knowns = [getRandomInt(60, 95), getRandomInt(60, 95), getRandomInt(60, 95)];
-    const knownSum = knowns.reduce((a, b) => a + b, 0);
-    const x = targetMean * n - knownSum;
-
-    const dataDisplay = [...knowns, 'x'];
-    const options = [
-      `${x}`,
-      `${x + 4}`,
-      `${x - 4}`,
-      `${targetMean}`,
-    ].filter((v, i, a) => a.indexOf(v) === i);
-    while (options.length < 4) {
-      options.push(`${x + options.length * 3}`);
+    // 미지수 x가 포함된 평균 문제 (자연수 점수 보장)
+    const x = getRandomInt(65, 95);
+    const k1 = getRandomInt(65, 95);
+    const k2 = getRandomInt(65, 95);
+    // make sure (x + k1 + k2 + k3) is divisible by 4
+    let k3 = getRandomInt(65, 95);
+    const rem = (x + k1 + k2 + k3) % 4;
+    if (rem !== 0) {
+      k3 += (4 - rem);
     }
+    const knowns = [k1, k2, k3];
+    const knownSum = knowns.reduce((a, b) => a + b, 0);
+    const targetMean = (knownSum + x) / 4;
+
+    const optSet = new Set<string>();
+    optSet.add(`${x}`);
+    optSet.add(`${x + 4}`);
+    optSet.add(`${Math.max(50, x - 4)}`);
+    optSet.add(`${x + 8}`);
+    optSet.add(`${Math.max(50, x - 8)}`);
+    const options = Array.from(optSet).slice(0, 4).sort((a, b) => Number(a) - Number(b));
 
     return {
       id: `dynamic-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,

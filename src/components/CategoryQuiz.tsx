@@ -17,17 +17,37 @@ interface CategoryQuizProps {
   onRecordAnswer: (record: UserAnswerRecord, question: QuizQuestion) => void;
   bookmarkedIds: Set<string>;
   onToggleBookmark: (questionId: string) => void;
+  targetQuestionId?: string | null;
+  onClearTargetQuestion?: () => void;
 }
 
 export const CategoryQuiz: React.FC<CategoryQuizProps> = ({
   onRecordAnswer,
   bookmarkedIds,
   onToggleBookmark,
+  targetQuestionId,
+  onClearTargetQuestion,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<QuizCategory | 'ALL'>('ALL');
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+
+  // Jump to target question if requested from Review notebook
+  React.useEffect(() => {
+    if (targetQuestionId) {
+      const idx = CURATED_QUESTIONS.findIndex(q => q.id === targetQuestionId);
+      if (idx !== -1) {
+        setSelectedCategory('ALL');
+        setCurrentIndex(idx);
+        setSelectedOption(null);
+        setIsSubmitted(false);
+        if (onClearTargetQuestion) {
+          onClearTargetQuestion();
+        }
+      }
+    }
+  }, [targetQuestionId, onClearTargetQuestion]);
 
   const filteredQuestions = CURATED_QUESTIONS.filter(q => 
     selectedCategory === 'ALL' ? true : q.category === selectedCategory

@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { computeStatistics } from '../utils/statisticsCalculator';
+import heroMathImg from '../assets/images/hero_statistics_math_1791352760115.jpg';
 import { 
   Plus, 
   Trash2, 
   RotateCcw, 
-  HelpCircle, 
   ArrowRight,
   Sparkles,
   Info
@@ -91,10 +91,14 @@ export const ConceptLab: React.FC = () => {
       <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 text-white shadow-sm">
         <div className="absolute inset-0">
           <img
-            src="/src/assets/images/hero_statistics_math_1791352760115.jpg"
+            src={heroMathImg}
             alt="대푯값 수학 통계 개념 일러스트"
             className="w-full h-full object-cover opacity-25"
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              // Hide image on load error and keep clean dark gradient background
+              e.currentTarget.style.display = 'none';
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/90 to-transparent" />
         </div>
