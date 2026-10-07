@@ -1,0 +1,6 @@
+{
+  "name": "대푯값 마스터 - 중1 수학 통계 퀴즈 & 실험실",
+  "description": "중학교 1학년 수학 대푯값(평균, 중앙값, 최빈값)의 모든 경우를 인터랙티브 실험실과 다양한 유형별 퀴즈, 실전 모의고사로 완벽하게 마스터하는 학습 애플리케이션",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
